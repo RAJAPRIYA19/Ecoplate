@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment - EcoPlate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-image: url('background_side1.PNG');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+
+    .payment-container {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 500px;
+      backdrop-filter: blur(10px);
+      text-align: center;
+      transition: all 0.4s ease;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .payment-details {
+      font-size: 1.1rem;
+      margin: 10px 0;
+    }
+
+    .payment-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .payment-btn:hover {
+      background-color: #45a049;
+      transform: scale(1.05);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 0.95rem;
+      text-decoration: none;
+      color: #72590c;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+      color: #43360d;
+    }
+
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4CAF50;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .success-message {
+      display: none;
+      font-size: 1.2rem;
+      color: #388e3c;
+      font-weight: bold;
+      margin-top: 20px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container" id="paymentContainer">
+    <h2>Payment Gateway</h2>
+    <p class="payment-details">Food Item: <span id="foodName"></span></p>
+    <p class="payment-details">Amount to Pay: ₹<span id="amount"></span></p>
+    <div class="loading-spinner" id="spinner"></div>
+    <div class="success-message" id="successMessage">Payment Successful! 🎉</div>
+    <button class="payment-btn" id="payBtn" onclick="processPayment()">Proceed to Pay</button><br>
+    <a href="javascript:history.back()" class="back-link">← Go Back</a>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const foodName = urlParams.get('name') || 'EcoPlate Food';
+    const amount = urlParams.get('amount') || '0';
+
+    document.getElementById('foodName').innerText = foodName;
+    document.getElementById('amount').innerText = amount;
+
+    function processPayment() {
+      const spinner = document.getElementById('spinner');
+      const successMessage = document.getElementById('successMessage');
+      const payBtn = document.getElementById('payBtn');
+
+      // Disable button and show loading
+      payBtn.disabled = true;
+      payBtn.innerText = 'Processing...';
+      spinner.style.display = 'block';
+
+      // Simulate payment processing
+      setTimeout(() => {
+        spinner.style.display = 'none';
+        successMessage.style.display = 'block';
+        payBtn.innerText = 'Paid';
+        payBtn.style.backgroundColor = '#888';
+
+        // Save the order in the database
+        fetch('storeOrder.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `food_name=${encodeURIComponent(foodName)}&amount=${encodeURIComponent(amount)}`
+        }).then(() => {
+          // Redirect to recipient dashboard after 2 seconds
+          setTimeout(() => {
+            window.location.href = "/EcoPlate/recipientdashboard.html";
+          }, 2000);
+        });
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

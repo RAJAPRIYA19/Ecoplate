@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipient Dashboard - EcoPlate</title>
+    <style>
+         body {
+            font-family: 'Segoe UI', sans-serif;
+            background-image: url('background_side1.PNG'); /* replace with your actual image path */
+            background-size: cover;      /* Make image cover the entire page */
+            background-repeat: no-repeat; /* Prevent repeating */
+            background-position: center; /* Center the image */
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* changed from center to flex-start */
+            min-height: 100vh;
+            height: auto;
+            overflow-y: auto;
+            margin: 0;
+            color: #fff;
+        }
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.2);
+            width: 800px;
+            max-width: 95%;
+            backdrop-filter: blur(10px);
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        .food-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .food-item p {
+            margin: 5px 0;
+            color: #333;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: #CD9D0B;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .stats div {
+            font-size: 1.1rem;
+        }
+
+        .navigation-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .navigation-link a {
+            text-decoration: none;
+            color: #72590c;
+            font-size: 1.2rem;
+        }
+        .navigation-link a:hover {
+            color: #43360d;
+        }
+
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .chatbot-icon {
+            width: 70px;
+            height: 70px;
+            background-color: #56ab2f;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .chatbot-icon:hover {
+            background-color: #a8e063;
+        }
+
+        label {
+            color: #333;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .logout-btn:hover {
+            background-color: #e53935;
+        }
+
+        /* Make Payment Button */
+        .make-payment-btn {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            cursor: pointer;
+            padding: 12px 24px; /* Increased padding for better clickability */
+            border-radius: 5px;
+            border: none;
+            font-size: 1rem;
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+        }
+
+        .make-payment-btn:hover {
+            background-color: #45a049; /* Darker green on hover */
+            transform: scale(1.05); /* Slightly enlarge the button on hover */
+        }
+
+        .make-payment-btn:active {
+            background-color: #388e3c; /* Even darker green on active */
+            transform: scale(1); /* Remove the scale effect when clicked */
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <div class="dashboard-container">
+        <h2>Welcome, <span id="username">Loading...</span>!</h2>
+
+        <div class="stats">
+            <div><strong>Session ID:</strong> <span id="session-id"></span></div>
+            <div><strong>Visit Count:</strong> <span id="visit-count"></span></div>
+        </div>
+
+        <h3>Available Food Listings</h3>
+        <div id="food-listings"></div>
+
+        <div class="navigation-link">
+            <a href="http://localhost/EcoPlate/feedback/feedback.html">Give Feedback</a>
+        </div>
+    </div>
+
+    <!-- Chatbot Icon -->
+    <div class="chatbot-container">
+        <a href="http://localhost/ecoplate/chatbot/chatbot.html">
+            <div class="chatbot-icon">
+                <span>🤖</span>
+            </div>
+        </a>
+    </div>
+
+    <script>
+        let sessionId = localStorage.getItem('sessionId');
+        if (!sessionId) {
+            sessionId = 'session_' + new Date().getTime();
+            localStorage.setItem('sessionId', sessionId);
+        }
+
+        let visitCount = parseInt(localStorage.getItem('visitCount') || '0');
+        visitCount++;
+        localStorage.setItem('visitCount', visitCount);
+
+        fetch('getUsername.php')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('username').innerText = data.username;
+            })
+            .catch(error => {
+                console.error('Error fetching username:', error);
+                document.getElementById('username').innerText = 'Guest';
+            });
+
+        document.getElementById('session-id').innerText = sessionId;
+        document.getElementById('visit-count').innerText = visitCount;
+
+        function fetchFoodListings() {
+            fetch('getAllFoodItems.php')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('food-listings');
+                    container.innerHTML = '';
+
+                    if (data.length === 0) {
+                        container.innerHTML = '<p>No food items available at the moment.</p>';
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'food-item';
+                        div.innerHTML = `
+                            <p><strong>${item.food_name}</strong></p>
+                            <p>${item.description}</p>
+                            <p>Quantity: ${item.quantity} ${item.unit}</p>
+                            <p>Expiry Date: ${item.expiry_date}</p>
+                            <p>Pickup Location: ${item.location_to_pickup}</p>
+                            <p>Price: ₹${item.price}</p>
+                           <button class="make-payment-btn" onclick="makePayment(${item.id}, '${item.food_name}', ${item.price})">Make Payment</button>
+
+                        `;
+                        container.appendChild(div);
+                    });
+                })
+                .catch(err => {
+                    console.error('Error fetching food items:', err);
+                });
+        }
+
+        function makePayment(id, foodName, price) {
+            const url = `payment.html?food_id=${id}&name=${encodeURIComponent(foodName)}&amount=${price}`;
+            window.location.href = url;
+        }
+
+        function logout() {
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('visitCount');
+            window.location.href = 'http://localhost:8080/EcoPlate/login.jsp'; 
+        }
+
+        fetchFoodListings();
+    </script>
+
+</body>
+</html>
